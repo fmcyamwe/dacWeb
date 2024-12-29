@@ -1,6 +1,6 @@
 
 #########
-# develop stage
+# build stage
 FROM node:lts-alpine AS build-stage
 WORKDIR /app
 COPY package*.json ./
@@ -8,10 +8,9 @@ RUN npm install
 RUN npm install -g @quasar/cli
 COPY . .
 
-# build stage ##umm yarn? >>nope >>same with RUN npm run build
-## YEEE builds with quasar build
 ## FROM develop-stage as build-stage
 #RUN npm run build
+## YEEE builds with quasar build
 RUN quasar build
 
 # production stage

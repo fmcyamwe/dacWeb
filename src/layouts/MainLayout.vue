@@ -1,27 +1,29 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated reveal :revealOffset="100">
+    <q-header elevated reveal :revealOffset="100" :class="theme">
       <q-toolbar><!--class="navbar"
         :class="{ 'navbar--hidden': !showNavbar }"
         @click.prevent="clicked"
         -->
         <q-toolbar-title class="g-planner">
-          Dac Web-UI
+          Dac Web-UI {{ loggedAs }}
         </q-toolbar-title>
 
         <!--  class="q-mt-xl"-->
       <div class="text-white">
         <q-btn v-if="isConnected"
-            class="q-mt-sm main-view doBounce"
-            text-color="gold"
-            unelevated
-            label="Login"
-            no-caps
-            no-wrap
-        />
+          class="q-mt-sm main-view doBounce"
+          text-color="gold"
+          unelevated
+          :label="loggedAs ? 'Logout' : 'Login'"
+          no-caps
+          no-wrap
+          @click="loginBtnClick"
+        /><!--Login-->
       </div>
 
       <div class="row justify-center">
+        {{  loggedAs }}
         <!--<EssentialLink
           v-for="link in essentialLinks"
           :key="link.title"
@@ -33,60 +35,56 @@
     </q-header>
 
     <q-page-container>
+      <LoginDialog v-if="showLoginDialog"
+        :login-options="loginList"
+        @gon-hide="() => {showLoginDialog = !showLoginDialog}"
+        @do-login-as="doLogin"
+      />  
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
 //import EssentialLink from 'components/EssentialLink.vue'
 
-/*const linksList = [
+const loginOptionList = [ //bon better to control login Options from here!!
   {
-    title: 'Goals',
-    caption: 'All Goals',
+    title: 'Patient',
+    caption: 'As Patient',
     icon: 'edit_note',
-    link: '/goalsPage', 
+    link: '/patient', 
   },
   {
-    title: 'Day View',
-    caption: 'Schedule',
-    icon: 'self_improvement', //event_upcoming || //today
-    link: '/dayCalendar',
-  },
-  {
-    title: 'Summary',
-    caption: 'Summary',
-    icon: 'summarize', //self_improvement ?
-    link: '/summary', //'https://quasar.dev'
-  },
-  //{
-  //  title: 'Testy',
-  //  caption: 'Testy',
-  //  icon: 'event_upcoming',
-  //  link: '/testy',
-  //}
-]*/
+    title: 'Doctor',
+    caption: 'As Doctor',
+    icon: 'event_upcoming',
+    link: '/doctor',
+  }
+]
 
 export default {
   name: 'MainLayout',
 
-  //components: {
-  //  EssentialLink
-  //},
+  components: {
+    //EssentialLink
+    LoginDialog: defineAsyncComponent(() => import('../components/loginDialog.vue')), //loadOnDemand
+  },
 
   setup () {
     const $q = useQuasar()
     console.log($q.platform.is) //.ios
 
     return {
-      //essentialLinks: linksList,
+      loginList: loginOptionList,
       showNavbar: true,
       lastScrollPosition: 0,
-      isConnected:ref(false) //check connection before showing login btn...
+      isConnected:ref(false), //check connection before showing login btn...
+      showLoginDialog:ref(false),
+      loggedAs:ref(null),
     }
   },
   beforeMount(){
@@ -99,9 +97,25 @@ export default {
   beforeUnmount(){
     //window.removeEventListener('scroll', this.onScroll)
   },
-  methods:{
-    clicked(){
-      console.log("clicked")
+  computed: {
+    theme(){
+      if(!this.loggedAs) return;
+
+      return this.loggedAs == 'Doctor' ? "doctorTheme" : "patientTheme"
+    },
+  },
+  methods: {
+    loginBtnClick(){
+      if(!this.loggedAs) {this.showLoginDialog = true}
+      this.loggedAs = null
+      //this.$router.push('/about'); // navigate to the "about" route
+      //this.$router.replace({ name: '' }); // replace the current route with the "about" route
+      // //both good but can go back....toReview**
+      this.$router.push('/');
+    },
+    doLogin(choice){
+      console.log("loginAs", choice)
+      this.loggedAs = choice  
     },
     onScroll () {
       // Get the current scroll position
@@ -116,7 +130,6 @@ export default {
       this.lastScrollPosition = currentScrollPosition
     },
     doApiCheck(){
-      console.log("doApiCheck")
       api.get('/patients') //toChange....
       .then((response) => {
         console.log("response::",response.data)
@@ -126,7 +139,7 @@ export default {
       })
     }, 
     notifyError(){
-      $q.notify({
+      this.$q.notify({ //weirdly complains on $q access?
         color: 'negative',
         position: 'top',
         message: 'API connection failed',
@@ -139,6 +152,13 @@ export default {
 <style scoped lang="sass">
 .g-planner
   padding: 0 1.5em 0 1.5em
+
+.patientTheme
+  background-color: green
+
+.doctorTheme
+  background-color: red
+
 .navbar
   height: 60px
   width: 100vw
