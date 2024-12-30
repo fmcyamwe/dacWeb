@@ -1,5 +1,10 @@
 <template>
-  <q-page class="flex flex-center daImage">
+  
+  <q-page class="flex flex-center">
+    <!--<<CustomToolBar />q-toolbar class="bg-primary text-white q-my-md shadow-2">
+    </q-toolbar><p>wonder if this would show? yup</p>-->
+    
+
     <img
       alt="Dac logo"
       src="~assets/dac-O-dac-logo.svg"
@@ -10,13 +15,16 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent,defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 
 export default defineComponent({
   name: 'IndexPage',
   components:{
-    //LoginDropDown: defineAsyncComponent(() => import('../components/loginDropDown.vue')), //loadOnDemand
+    //CustomToolBar: defineAsyncComponent(() => import('../components/customToolBar.vue')), //loadOnDemand
+  },
+  props:{
+    someProp: String  //default: ''
   },
   data () {
     const $q = useQuasar()

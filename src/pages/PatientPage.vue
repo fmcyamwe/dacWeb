@@ -1,5 +1,5 @@
 <template>
-    <q-page class="flex flex-center daImage">
+    <q-page class="flex flex-center">
       <!--<img
         alt="Dac logo"
         src="~assets/dac-O-dac-logo.svg"
@@ -31,6 +31,9 @@
     components:{
       //LoginDropDown: defineAsyncComponent(() => import('../components/loginDropDown.vue')), //loadOnDemand
     },
+    props:{
+      loggedAs: String
+    },
     data () {
       const $q = useQuasar()
       
@@ -38,6 +41,9 @@
         //loggedAs:ref(null),
         allPatients:ref(null)
       }
+    },
+    mounted(){
+      console.log("mounted::",this.loggedAs)
     },
     beforeMount(){
       this.doApiCheck();

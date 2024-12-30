@@ -1,5 +1,5 @@
 <template>
-    <q-page class="flex flex-center daImage">
+    <q-page class="flex flex-center">
       <img
         alt="Dac logo"
         src="~assets/dac-O-dac-logo.svg"
@@ -31,19 +31,27 @@
     components:{
       //LoginDropDown: defineAsyncComponent(() => import('../components/loginDropDown.vue')), //loadOnDemand
     },
+    props:{
+      loggedAs: String
+    },
     data () {
       const $q = useQuasar()
       
       return {
         //loggedAs:ref(null),
-        allDoctors:ref(null)
+        allDoctors:ref(null),
+        allSpecialities:ref(null)
       }
     },
     beforeMount(){
-      this.doApiCheck();
+      this.fetchAllDoctors();
+      this.fetchAllSpecities();
+    },
+    mounted(){
+      console.log("mounted::",this.loggedAs)
     },
     methods: {
-      doApiCheck(){
+      fetchAllDoctors(){
         api.get('/doctors')
         .then((response) => {
           console.log("response::",response.data)
@@ -53,6 +61,16 @@
           console.log("Error::",response.data)
         })
       }, 
+      fetchAllSpecities(){
+        api.get('/specialities')
+        .then((response) => {
+          console.log("response::",response.data)
+          this.allSpecialities = response.data 
+        }).catch(() => {
+          //this.notifyError()
+          console.log("Error::",response.data)
+        })
+      }
     }
   })
   </script>
