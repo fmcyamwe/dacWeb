@@ -1,6 +1,7 @@
 import MainLayout from 'layouts/MainLayout.vue'
 import PatientLayout from 'layouts/PatientLayout.vue'
 import DoctorLayout from 'layouts/DoctorLayout.vue'
+import ViewLayout from 'layouts/ViewLayout.vue'  //PatientLayout and DoctorLayout are same 
 
 import IndexPage from 'pages/IndexPage.vue'
 import PatientPage from 'pages/PatientPage.vue'
@@ -20,7 +21,7 @@ const routes = [
   {
     path: '/patient',
     props: {loggedAs: "Patient"},
-    component: PatientLayout, //() => import('layouts/MainLayout.vue'), 
+    component: ViewLayout, //() => import('layouts/MainLayout.vue'), 
     children: [
       { path: '', component: PatientPage}
     ]
@@ -28,7 +29,7 @@ const routes = [
   {
     path: '/doctor',
     props: {loggedAs: "Doctor"},
-    component: DoctorLayout, //todo** PatientLayout and DoctorLayout are same >>rename and use only layout for connected status
+    component: ViewLayout,
     children: [
       { path: '', component: DoctorPage}
     ]

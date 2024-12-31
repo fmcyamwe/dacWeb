@@ -1,6 +1,12 @@
 <template>
-      <q-toolbar class="text-white shadow-3"><!--bg-primary -->
-        <q-btn flat round dense icon="menu" class="q-mr-sm" />
+      <q-toolbar class="text-white shadow-3">
+        <div v-if="loggedAs"> 
+          <img
+        alt="Dac logo"
+        src="~assets/dac-O-dac-logo.svg"
+        style="width: 50px; height: 50px"></div>
+        <div v-else><q-btn flat round dense icon="menu" class="q-mr-sm" /></div>
+
         <q-separator dark vertical inset />
         <q-toolbar-title class="g-planner">
           Dac Web-UI {{ loggedAs }}
