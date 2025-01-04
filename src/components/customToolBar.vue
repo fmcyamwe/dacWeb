@@ -26,16 +26,16 @@
         <q-btn-dropdown v-else stretch flat label="Login">
           <q-list>
             <q-item-label header>Login as</q-item-label>
+            <q-separator spaced/>
             <q-item v-for="e in loginOptions" 
               :key="e.title" 
               clickable
               :to="e.link"
               @click="onSelect(e.title)" v-close-popup>
-                  <q-item-section>
-                      <q-item-label>{{ e.title }}</q-item-label>
-                  </q-item-section>
+                <q-item-section>
+                    <q-item-label>{{ e.title }}</q-item-label>
+                </q-item-section>
               </q-item>
-            <q-separator inset spaced />
           </q-list>
         </q-btn-dropdown>
       </q-toolbar>

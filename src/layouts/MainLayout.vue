@@ -36,6 +36,7 @@
 import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
+import { dacOdacStore } from '../stores/dacOdac'  //ummm
 
 const loginOptionList = [ //bon better to control login Options from here!!
   {
@@ -118,11 +119,39 @@ export default defineComponent({
       api.get('/connect') //toChange....
       .then((response) => {
         console.log("response::",response.data)
-        this.isConnected = true 
-      }).catch(() => {
-        //this.notifyError()
+        this.isConnected = true
+      }).catch((error) => {
+        console.log("getToken::Error",error)
+        this.notifyError() //needed Notify plugin
       })
-    }, 
+    },
+    /*getToken() {
+      const params = {
+        "username": "admin", //toChange
+        "password":"password"
+      }
+        
+      const url = `/auth/login`
+        //console.log("getToken::",url, params)
+        
+        //would below work? or manually set them?
+        //api.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+        
+      api.post(url,params)
+        .then((response) => {
+          console.log("getToken::response",response.data)
+          //this.dacStore.saveToken(response.data.token)
+          this.dacOStore.saveToken(response.data.token)
+          this.apiToken = response.data.token
+          //console.log(response.status);
+          //console.log(response.statusText);
+          console.log(response.headers);
+          console.log(response.config);
+        }).catch((error) => {
+          //this.notifyError()
+          console.log("getToken::Error",error)
+        })
+      },*/
     notifyError(){
       this.$q.notify({ //weirdly complains on $q access?
         color: 'negative',

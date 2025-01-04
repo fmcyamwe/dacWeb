@@ -24,6 +24,8 @@
 import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
+//import { dacOdacStore } from '../stores/dacOdac' 
+//import { useDacStore } from '../stores/dac-store' 
 
 export default defineComponent({
   name: 'ViewLayout',
@@ -40,6 +42,8 @@ export default defineComponent({
   setup () {
     const $q = useQuasar()
     //console.log($q.platform.is) //.ios
+    //const dacOStore = dacOdacStore()
+    //const dacStore = useDacStore()
 
     return {
       //loginList: loginOptionList,
@@ -47,16 +51,23 @@ export default defineComponent({
       lastScrollPosition: 0,
       isConnected:ref(false), //check connection before showing login btn...
       showLoginDialog:ref(false),
+      //dacOStore: dacOdacStore(),
+      //apiToken:ref(null),
       //loggedIn:this.loggedAs//ref(this.loggedAs),
     }
   },
-  //beforeMount(){
-    //this.doApiCheck();
-    //console.log("beforeMount::PatientLayout")
+  /*beforeMount(){
+    let token = this.dacOStore.getToken
+    console.log("beforeMount::ViewLayout",this.loggedAs, token)
+    if(!token){
+      let t = this.getToken()
+      console.log("beforeMount::ViewLayout >> getToken",t) //toSee**
+      //this.apiToken = t ///rprolly
+    }
+  },*/
+  //mounted(){
+  //    console.log("mounted::ViewLayout",this.loggedAs)
   //},
-  mounted(){
-      console.log("mounted::",this.loggedAs)
-  },
   //mounted(){
   //  console.log("onMounted")
     //window.addEventListener('scroll', this.onScroll)
@@ -96,14 +107,25 @@ export default defineComponent({
       // Set the current scroll position as the last scroll position
       this.lastScrollPosition = currentScrollPosition
     },
-    doApiCheck(){
-      api.get('/connect') //toChange....
-      .then((response) => {
-        console.log("response::",response.data)
-        this.isConnected = true 
-      }).catch(() => {
-        this.notifyError()
-      })
+    getToken(){  //redundant--toRemove**
+      const params = {
+        "username": "admin", //toChange
+        "password":"password"
+      }
+        
+        const url = `/auth/login`
+        console.log("getToken::",url, params)
+        api.post(url,params)
+        .then((response) => {
+          console.log("getToken::response",response.data)
+          //this.allDoctors = response.data 
+          //this.dacStore.saveToken(response.data.token)
+          this.dacOStore.saveToken(response.data.token)
+          return response.data.token
+        }).catch((error) => {
+          //this.notifyError()
+          console.log("getToken::Error",error)
+        })
     }, 
     notifyError(){
       this.$q.notify({ //weirdly complains on $q access?
