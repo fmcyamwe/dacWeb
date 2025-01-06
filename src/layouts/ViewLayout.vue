@@ -117,7 +117,7 @@ export default defineComponent({
         console.log("getToken::",url, params)
         api.post(url,params)
         .then((response) => {
-          console.log("getToken::response",response.data)
+          //console.log("getToken::response",response.data)
           //this.allDoctors = response.data 
           //this.dacStore.saveToken(response.data.token)
           this.dacOStore.saveToken(response.data.token)

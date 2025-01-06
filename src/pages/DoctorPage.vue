@@ -31,11 +31,12 @@
                  </q-item-label>
               </q-item-section>
               <q-separator spaced />
-            </q-item>
-            
+            </q-item><!--v-morph:tree:mygroup:500.tween="morphGroupModel" -->
+
             <q-item v-for="patient in allPatients"
-            :key="patient.Id" 
-            class="q-my-sm">
+            :key="patient.Id"
+            clickable v-ripple
+            class="q-my-sm" @click="(evt, go) => clickedPatient(evt, go, patient)" >
               <q-item-section>
                 <q-item-label overline class="q-mx-lg q-px-md row justify-center no-wrap" style="max-width:100%;font-weight: bolder;">
                  {{ patient.firstName }} {{ patient.lastName }}
@@ -44,6 +45,7 @@
               <q-separator spaced />
             </q-item>
           </q-list>
+
         </q-tab-panel>
         <q-tab-panel name="RList">
           <!-- List of vist requests from Patients-->
@@ -107,7 +109,7 @@
   import { useQuasar } from 'quasar'
   import { api } from 'boot/axios'
   import { dacOdacStore } from '../stores/dacOdac' 
-  //import { useDacStore } from '../stores/dac-store' 
+  import treatmentRequest from '../components/Treatment.vue' 
   
   export default defineComponent({
     name: 'DoctorPage',
@@ -149,7 +151,14 @@
         dacOStore: dacOdacStore(),
         apiToken:apiToken,//ref(null),
         currentReq:ref(null),
-        expanded:ref({})
+        expanded:ref({}),
+        morphGroupModel: ref('item'),
+        nextMorphStep: ref({
+          item: 'card1',
+          card1: 'card2',
+          card2: 'item'
+        }),
+        
       }
     },
     
@@ -187,7 +196,7 @@
 
         api.post(url,params)
         .then((response) => {
-          console.log("getToken::response",response.data)
+          //console.log("getToken::response",response.data)
           //this.allDoctors = response.data 
           //this.dacStore.saveToken(response.data.token)
           this.dacOStore.saveToken(response.data.token)
@@ -253,6 +262,112 @@
             this.tab = "Admin"  //nav to Goal tab
         }
         
+      },
+      addTreatment(patient, opts){ //id
+        const params = {
+          "patientId": patient.Id,
+          "doctorId":this.doctorId,
+          "name": opts.name, //"Routine check-up",
+          "details":opts.details //"visit"
+        }
+        
+        const url = `/patients/${patient.Id}/treatments` //patients/{id}/treatments
+        console.log("addTreatment::",url, params)
+
+        api.post(url,params)
+        .then((response) => {
+          console.log("addTreatment::response",response.data)
+            this.$q.notify({
+            color: 'positive',
+            position: 'top',
+            message: `Request is ${response.data}`, //todo** show properly
+            icon: 'thumbs_up'
+          })
+        }).catch((error) => {
+          //this.notifyError()
+          console.log("addTreatment::Error",error)
+        })
+      },
+      clickedPatient(evt,go,p){ 
+        //should check if own patient
+        ///if >treatment dialog
+        ///ifNot then dialog below to make mine?
+        evt.preventDefault()
+        console.log("clickedPatient",p)
+
+        let doAction = (opt) => {//onOk
+          //{choice:'reset', reason:''}
+          this.addTreatment(p,opt) //id
+        }
+
+        this.addTreatmentDialog(
+          "Add Treatment",
+          function(opt){ //onOk---
+            doAction(opt) //labely.length < 2
+          },
+          function(opt){ //onCancel---
+            console.log("Adding treatment...cancelling "+p.firstName)
+          },
+          null //onDismiss
+        )
+
+        /*
+        this.$q.dialog({
+          title: "title",
+          cancel: 'Mine', //true,
+          ok: "Add", //okbtn, //
+          //persistent:true,
+          noBackdropDismiss:true, //esc execute onCancel--toReview**
+          //persistent:      
+          // position: 'bottom',
+          //noBackdropDismiss  //should add this when user have to make choice
+          message: "bruuh",//message,
+          multiLine: true,
+        }).onOk(() => {
+          console.log("Adding treatment for patient "+p.firstName)
+          //could do this only if own patient?!?
+          //todo** add treatment
+        }).onCancel(() => {
+            //executeCancel()
+            console.log("Making patient "+p.firstName+ " Mine")
+            //then a
+        }).onDismiss(() => {
+          //if(executeDismiss){
+          //  executeDismiss()
+          //  return
+          //}
+        })
+        */
+      },
+      addTreatmentDialog(title, onOk = null,onCancel = null,onDismiss=null){ //mess,labels,selectedM,
+        this.$q.dialog({
+          component: treatmentRequest,
+          componentProps: {
+            title:title,
+            message:"wee"
+            //options:labels,
+            //selectedO:selectedM
+          }
+        }).onOk((data) => {
+          if (onOk) {
+            if(data.choice == ''){ //invoked again to handle when user doesnt make selection!
+              this.addTreatmentDialog(title, onOk,onCancel,onDismiss)
+            }else {
+              //console.log('scheduleByDialog::onOk!!',data)
+              onOk(data)
+            }
+          }
+        }).onCancel(() => {
+            if (onCancel) {
+              onCancel()
+            }
+        }).onDismiss(() => {
+            if(onDismiss){ //for cleanup and other actions
+              //console.log('scheduleByDialog::onDismiss!! executin...')
+              onDismiss()
+          }
+        })
+
       },
       notifyError(){
         this.$q.notify({ //weirdly complains on $q access?

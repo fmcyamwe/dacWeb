@@ -35,7 +35,7 @@
                   clearable
                   lazy-rules
                   item-aligned
-                  :rules="[ val => val && val.length > 1 || 'Please enter you first name']"
+                  :rules="[ val => val && val.length > 1 || 'Please enter your first name']"
                   />
                   <q-input class="q-mx-none"
                   filled
@@ -44,7 +44,7 @@
                   clearable
                   lazy-rules
                   item-aligned
-                  :rules="[ val => val && val.length > 1 || 'Please enter you last name']"
+                  :rules="[ val => val && val.length > 1 || 'Please enter your last name']"
                   />
                   <!--or use <q-option-group for other gender options?  class="typey"-->
                   <div class="q-gutter-sm q-mx-auto">
@@ -172,7 +172,9 @@
         firstName:ref(''),
         lastName: ref(''),
         gender: ref('man'),
-        bornIn: ref('') //toReview as number?
+        bornIn: ref(0),
+
+        attendingDoctors: ref(null)
 
       }
     },
@@ -181,7 +183,7 @@
       if(!token){
         this.getToken()
       } else{
-        console.log("beforeMount::SKIP token request!", token);
+        console.log("beforeMount::SKIP token request!");
         this.apiToken = token
       }
       this.fetchDoctors();
@@ -210,7 +212,7 @@
         
         api.post(url,params)
         .then((response) => {
-          console.log("getToken::response",response.data)
+          //console.log("getToken::response",response.data)
           //this.dacStore.saveToken(response.data.token)
           this.dacOStore.saveToken(response.data.token)
           this.apiToken = response.data.token
@@ -257,11 +259,14 @@
           //this.notifyError()
           console.log("requestVisit::Error",error)
         })
+
       },
       goToDoctor(e, go, doc) { //id
         e.preventDefault() // mandatory; we choose when we navigate
 
         console.log("goToDoctor::",e, doc) //id
+
+        console.log("CurrentAttendingDoc::", this.attendingDoctors)
 
         let doAction = (opt) => {//onOk
           //{choice:'reset', reason:''}
@@ -301,7 +306,7 @@
           })
         */
       },
-      getPatientInfo(){ //umm use param this.patientId ? toReview**
+      getPatientInfo(){
         const url = `/patients/${this.patientId}`
 
         api.get(url,{//need auth!!
@@ -323,6 +328,23 @@
             //delete current token --todo**
             this.getToken(); //retry 
           }
+        })
+
+        //should have attending doctor in above return but for now separate query--toChange
+        api.get(`/patients/${this.patientId}/doctors`,{
+          headers: {'Authorization': `Bearer ${this.apiToken}`},//need auth!!
+        })
+        .then((response) => {
+          console.log("getPatientAttendingDoctors::response",response.data)
+          this.attendingDoctors = response.data
+        }).catch((error) => {
+          //this.notifyError()
+          // //error,
+          console.log("getPatientAttendingDoctors::Error", error.status, error.message)
+          //if(error.status == '401'){
+            //delete current token --todo**
+          //  this.getToken(); //retry 
+          //}
         })
 
       },

@@ -5,7 +5,7 @@
         alt="Dac logo"
         src="~assets/dac-O-dac-logo.svg"
         style="width: 50px; height: 50px"></div>
-        <div v-else><q-btn flat round dense icon="menu" class="q-mr-sm" /></div>
+        <div v-else><q-btn flat round dense icon="menu" class="q-mr-sm" @click="adminLogin"/></div>
 
         <q-separator dark vertical inset />
         <q-toolbar-title class="g-planner">
@@ -70,6 +70,9 @@ export default defineComponent({
       // //both good but can go back....toReview**
       this.$router.push('/');
     },
+    adminLogin(){
+      this.$router.push('/admin');
+    }
   }
 })
 </script>
