@@ -12,13 +12,15 @@
                 <q-option-group
                 v-model="oChoice"
                 :options="daOptions"
-                
                 /><!--inline-->
             </div>
           </q-card-section>
           
           <q-card-section>
              <!--hidden when filter is selected --toReview**-->
+             <q-item-label v-if="showDisabled">
+                <em>**Disabled option as not currentDoc</em>
+             </q-item-label>
             <q-input v-if="oChoice != 'filter'"
             v-model="aReason"
             filled
@@ -58,8 +60,7 @@ export default defineComponent ({  //this be Options Vue notation
       title: String,
       message:String,
       options:Array,
-      selectedO:String,
-      //showDialog: Boolean, //default hide/show. //huh redundant
+      showDisabled:Boolean
     },
     emits: [
         'onCancel',

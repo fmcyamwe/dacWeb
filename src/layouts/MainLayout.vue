@@ -71,6 +71,7 @@ export default defineComponent({
       isConnected:ref(false), //check connection before showing login btn...
       showLoginDialog:ref(false),
       loggedAs:ref(null),
+      randoms:ref(null)
     }
   },
   beforeMount(){
@@ -99,9 +100,11 @@ export default defineComponent({
       // //both good but can go back....toReview**
       this.$router.push('/');
     },
-    doLogin(choice){
-      console.log("loginAs", choice)
+    doLogin(choice){ //toSee
+      console.log("loginAs", choice, this.randoms)
+      var route = choice == 'Doctor' ? '/doctor/'+this.randoms[0] : '/patient/'+this.randoms[1]
       this.loggedAs = choice  
+      this.$router.push({ path: route })  //`/user/${username}`
     },
     onScroll () {
       // Get the current scroll position
@@ -120,6 +123,7 @@ export default defineComponent({
       .then((response) => {
         console.log("response::",response.data)
         this.isConnected = true
+        this.randoms = response.data
       }).catch((error) => {
         console.log("getToken::Error",error)
         this.notifyError() //needed Notify plugin

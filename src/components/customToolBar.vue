@@ -30,11 +30,10 @@
             <q-item v-for="e in loginOptions" 
               :key="e.title" 
               clickable
-              :to="e.link"
               @click="onSelect(e.title)" v-close-popup>
                 <q-item-section>
                     <q-item-label>{{ e.title }}</q-item-label>
-                </q-item-section>
+                </q-item-section> <!--:to="e.link"-->
               </q-item>
           </q-list>
         </q-btn-dropdown>

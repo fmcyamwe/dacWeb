@@ -124,6 +124,7 @@
             <q-tab-panel name="history">
             <div class="text-h4 q-mb-md">Medical History</div>
             <p>Medical History including visits and treatments.</p>
+            
           </q-tab-panel>
 
           </q-tab-panels>
@@ -134,7 +135,7 @@
   </template>
   
   <script>
-  import { defineComponent, defineAsyncComponent, ref, watchEffect} from 'vue'
+  import { defineComponent, ref, watch} from 'vue'
   import { useQuasar } from 'quasar'
   import { api } from 'boot/axios'
   import { dacOdacStore } from '../stores/dacOdac' 
@@ -150,15 +151,15 @@
       patientId: {
         type: String,
         //required: true, //should be passed from login...toEnable**
-        default: '544e30f81841'  //for testing...
+        //default: '544e30f81841'  //for testing...
       }  
     },
     data () {
       const $q = useQuasar()
-      watchEffect(() => { //use watch instead--todo**
-        console.log("watchEffect::apiToken",this.apiToken)
-        
-      })
+      const medicHist=ref(null)
+  
+
+      
 
       return {
         //loggedAs:ref(null),
@@ -174,7 +175,8 @@
         gender: ref('man'),
         bornIn: ref(0),
 
-        attendingDoctors: ref(null)
+        attendingDoctors: ref(null),
+        medicHist:medicHist,
 
       }
     },
@@ -251,7 +253,7 @@
           console.log("requestVisit::response",response.data)
             this.$q.notify({
             color: 'positive',
-            position: 'top',
+            position: 'bottom',
             message: `Request is ${response.data}`, //todo** show properly
             icon: 'thumbs_up'
           })
@@ -264,10 +266,6 @@
       goToDoctor(e, go, doc) { //id
         e.preventDefault() // mandatory; we choose when we navigate
 
-        console.log("goToDoctor::",e, doc) //id
-
-        console.log("CurrentAttendingDoc::", this.attendingDoctors)
-
         let doAction = (opt) => {//onOk
           //{choice:'reset', reason:''}
           this.requestVisit(doc,opt) //id
@@ -279,18 +277,21 @@
           return
         }
 
+        let isAttendingDoc = this.attendingDoctors.find(item => item.doctorId == doc.Id)
+
+        console.log("goToDoctor::CurrentAttendingDoc::",doc, isAttendingDoc) //doc.Ithis.attendingDoctors
 
         //todo** validate doc.id
         let labels = [
           {label: `A visit`,value: 'visit'}, //disable: false  (to disable some options --toReview**)
-          {label: `Request Treatment`,value: 'treatment'},
+          {label: `Request Treatment`,value: 'treatment', disable: !isAttendingDoc },
           {label: `Simple Checkup`,value: 'checkup'}, //redundant but can be modified..can be used to have patient become doc's ? 
         ]
 
         let title = 'Action Request'
-        let message = 'Choose request for: '+doc.lastName
+        let message = 'Choose request for: '+doc.firstName + ' '+doc.lastName
 
-        this.scheduleByDialog(title,message,labels,'',doAction,doCancel)
+        this.scheduleByDialog(title,message,labels,!isAttendingDoc,doAction,doCancel)
         //could add auto 'doAction' in some cases? toReview**
 
         //this.requestVisit(id)
@@ -306,6 +307,17 @@
           })
         */
       },
+      fetchMedical(){      
+        const url = `/patients/${this.patientId}/more`
+
+        api.get(url,{//need auth!!
+          headers: {'Authorization': `Bearer ${this.apiToken}`},
+        }).then((response) => {
+          this.medicHist = response.data;
+          //return response.data;
+        })
+
+      },
       getPatientInfo(){
         const url = `/patients/${this.patientId}`
 
@@ -320,6 +332,7 @@
           this.gender = data.gender
           this.bornIn = data.born  //todo** rename
 
+          //this.fetchMedical();
         }).catch((error) => {
           //this.notifyError()
           // //error,
@@ -327,6 +340,7 @@
           if(error.status == '401'){
             //delete current token --todo**
             this.getToken(); //retry 
+            
           }
         })
 
@@ -362,10 +376,10 @@
         }
 
         console.log("onSubmit::",url, params)
-        api.put(url,{
-          headers: {'Authorization': `Bearer ${this.apiToken}`},
-          params:params
-        })
+        api.put(url,params)//{
+          //headers: {'Authorization': `Bearer ${this.apiToken}`},
+          //params:params
+        //}) //broks when headers are added smh
         .then((response) => {
           console.log("onSubmit::response",response.data)
           
@@ -382,14 +396,14 @@
           icon: 'report_problem'
         })
       },
-      scheduleByDialog(title, mess,labels,selectedM, onOk = null,onCancel = null,onDismiss=null){
+      scheduleByDialog(title, mess,labels,isNotAttendingDoc, onOk = null,onCancel = null,onDismiss=null){
         this.$q.dialog({
           component: actionRequest,
           componentProps: {
             title:title,
             message:mess,
             options:labels,
-            selectedO:selectedM
+            showDisabled:isNotAttendingDoc
           }
         }).onOk((data) => {
           if (onOk) {

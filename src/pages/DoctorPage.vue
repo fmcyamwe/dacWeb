@@ -117,11 +117,11 @@
       
     },
     props:{
-      //loggedAs: String //prolly not needed--toReview**
+      loggedAs: String, //prolly not needed--toReview**
       doctorId: {
         type: String,
         //required: true, //should be passed from login...toEnable**
-        default: '266721c1816c'  //for testing...
+        //default: 'obiii'  // c8656a6a17ba (multiple requests from same) //for testing...
       } 
     },
     data () {
@@ -136,7 +136,7 @@
       //}),
       
       watch(apiToken,(apiTokn, prevApiToken) => {//or this.apiToken?
-        console.log("watch::apiToken",apiTokn, prevApiToken)
+        //console.log("watch::apiToken",apiTokn, prevApiToken)
         if(apiTokn){
           this.fetchAllPatients(apiTokn) //yeeeyuh
         }
@@ -167,7 +167,7 @@
       if(!token){
         this.getToken()
       }else {
-        console.log("beforeMount::SKIP token request!", token);
+        //console.log("beforeMount::SKIP token request!", token);
         this.apiToken = token
       }  
       this.fetchPendingRequests();
@@ -189,7 +189,7 @@
         }
         
         const url = `/auth/login`
-        //console.log("getToken::",url, params)
+        console.log("getToken::",url, params,this.doctorId)
 
         //would below work? or manually set them?
         //api.defaults.headers.common['Authorization'] = AUTH_TOKEN;

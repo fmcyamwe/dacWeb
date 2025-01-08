@@ -25,7 +25,7 @@ const routes = [
     props: {loggedAs: "Patient"},
     component: ViewLayout, //() => import('layouts/MainLayout.vue'), 
     children: [
-      { path: '', component: PatientPage}
+      { path: '/patient/:patientId', component: PatientPage, props: true}
     ]
   },
   {
@@ -33,7 +33,7 @@ const routes = [
     props: {loggedAs: "Doctor"},
     component: ViewLayout,
     children: [
-      { path: '', component: DoctorPage}
+      { path: '/doctor/:doctorId', component: DoctorPage, props: true}
     ]
   },
 
