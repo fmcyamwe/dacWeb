@@ -111,7 +111,7 @@
 
                     <q-item-section top side><!--could be icons instead-->
                       <q-item-label lines="1" class="q-mt-xs text-body2 text-weight-bold text-primary text-uppercase">
-                        <span class="cursor-pointer">Request visit</span>
+                        <span class="cursor-pointer">{{requesty(doctor)}}</span>
                       </q-item-label>
                     </q-item-section>
 
@@ -124,6 +124,69 @@
             <q-tab-panel name="history">
             <div class="text-h4 q-mb-md">Medical History</div>
             <p>Medical History including visits and treatments.</p>
+          
+            <!--put below in carousel each...toSee**-->
+            <q-timeline color="secondary">
+              <q-timeline-entry heading>
+                Attending docs
+              </q-timeline-entry>
+              <q-timeline-entry v-for="e in attendingDoctors" :key="e.doctorId" :subtitle="e.fromAction">
+                {{ e.doctorName }}
+              </q-timeline-entry><!--more info...-->
+            </q-timeline>
+
+            <q-timeline color="info">
+              <q-timeline-entry heading>
+                Requests
+              </q-timeline-entry><!--daDoc as key would group?-->
+              <q-timeline-entry v-for="e in medicHist" :key="e.daDoc" :subtitle="Date(e.from)">
+                {{ e.daDoc }} >> {{ e.deets }}
+              </q-timeline-entry>
+            </q-timeline>
+
+            <q-timeline color="warning">
+              <q-timeline-entry heading>
+                Treatments
+              </q-timeline-entry><!--deets as key would group?-->
+              <q-timeline-entry v-for="e in medicHist" :key="e.deets" :subtitle="Date(e.from)">
+                {{ e.daDoc }} >> {{ e.deets }}
+              </q-timeline-entry>
+            </q-timeline>
+
+
+            <!--<q-carousel
+              v-if="Object.keys(daOptions).length > 0"
+              v-model="panel"
+              transition-prev="scale"
+              transition-next="scale"
+              swipeable
+              animated
+              control-color="white"
+              infinite
+              arrows
+              navigation
+              class="bg-primary text-white shadow-2 rounded-borders"
+              style="width: 100%;">
+                <q-carousel-slide v-for="(value, key) in daOptions" :name="key" :key="key">
+                  //-<q-icon name="style" size="56px" /> class="q-mt-md text-center" class="column items-center"  style="max-width: 800px;" style="width: 100%;"//>
+                  <div class="q-pa-sm q-pb-md">
+                    
+                      <template v-for="e in value" :key="e.on">//-key not needed below? also use slots?!? huh doesnt seem needed and works!!//->
+                        <q-timeline-entry v-if="(e.note && e.note !== '')|| e.atScore" :title="e.atScore"
+                        :subtitle="e.on">
+                          {{ e.note }}
+                        </q-timeline-entry>
+                      </template>
+                      //-<q-timeline-entry v-for="e in value" 
+                      :key="e.on" 
+                      :title="e.score"
+                      :subtitle="e.on">
+                        {{ e.note }}
+                      </q-timeline-entry>//>
+                    </q-timeline>
+                  </div>
+                </q-carousel-slide>
+              </q-carousel>-->
             
           </q-tab-panel>
 
@@ -176,7 +239,7 @@
         bornIn: ref(0),
 
         attendingDoctors: ref(null),
-        medicHist:medicHist,
+        medicHist:medicHist
 
       }
     },
@@ -197,9 +260,15 @@
 
       //should be done in beforeMount? --todo**
       this.getPatientInfo() 
+      this.fetchMedical()
     },
-    
     methods: {
+      requesty(doc) {
+        if (this.attendingDoctors.some(item => item.doctorId == doc.Id)){
+          return 'Request Treatment'
+        }
+        return 'Request visit'
+      },
       getToken() {
         const params = {
           "username": "admin", //toChange
@@ -227,13 +296,14 @@
           console.log("getToken::Error",error)
         })
       },
-      fetchDoctors(){
-        api.get('/doctors')  //patients should see doctors //patients  
+      fetchDoctors(){//patients should see doctors'
+        //todo** add pagination...
+        api.get('/doctors?PageSize=10&PageIndex=0')   
         .then((response) => {
-          console.log("response::",response.data)
+          console.log("fetchDoctors::response",response.data)
           this.allDoctors = response.data 
         }).catch(() => {
-          //this.notifyError()
+          this.notifyError("API connection failed")
           console.log("Error::",response.data)
         })
       },
@@ -307,12 +377,19 @@
           })
         */
       },
-      fetchMedical(){      
+      fetchMedical(){   
+        if (!this.patientId){
+          console.log("fetchMedical::none patientID",this.patientId)
+          this.notifyError("No patientId")
+          return 
+        }
+
         const url = `/patients/${this.patientId}/more`
 
         api.get(url,{//need auth!!
           headers: {'Authorization': `Bearer ${this.apiToken}`},
         }).then((response) => {
+          console.log("fetchMedical::response",response.data)
           this.medicHist = response.data;
           //return response.data;
         })
@@ -388,11 +465,11 @@
           console.log("onSubmit::Error",error)
         })
       },
-      notifyError(){
-        this.$q.notify({ //weirdly complains on $q access?
+      notifyError(message){
+        this.$q.notify({//plugin gotta be included
           color: 'negative',
           position: 'top',
-          message: 'API connection failed',
+          message: message, //'API connection failed',
           icon: 'report_problem'
         })
       },

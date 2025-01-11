@@ -44,6 +44,20 @@ export default defineComponent({
     //console.log($q.platform.is) //.ios
     //const dacOStore = dacOdacStore()
     //const dacStore = useDacStore()
+    const loginOptionList = [ //bon better to control login Options from here!!
+  {
+    title: 'Patient',
+    caption: 'As Patient',
+    icon: 'edit_note',
+    link: '/patient',
+  },
+  {
+    title: 'Doctor',
+    caption: 'As Doctor',
+    icon: 'event_upcoming',
+    link: '/doctor',
+  }
+]
 
     return {
       //loginList: loginOptionList,

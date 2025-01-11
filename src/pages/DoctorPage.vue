@@ -27,8 +27,8 @@
             <q-item v-if="allPatients && allPatients.length > 0">
               <q-item-section>
                 <q-item-label overline class="q-mx-lg q-px-md row justify-center no-wrap" style="max-width:100%;font-weight: bolder;">
-                  Swipe to View more on each Patient
-                 </q-item-label>
+                   Click to add treatment for Patient
+                 </q-item-label><!--umm weird...should show patientPage...-->
               </q-item-section>
               <q-separator spaced />
             </q-item><!--v-morph:tree:mygroup:500.tween="morphGroupModel" -->
@@ -212,7 +212,8 @@
           return
         }
 
-        const url = `/patients` // `/doctors/${this.doctorId}/patients`
+        //todo** use pagination
+        const url = `/patients?PageSize=10&PageIndex=0'` // `/doctors/${this.doctorId}/patients`
         api.get(url,{
           headers: {'Authorization': `Bearer ${token}`}, //this.apiToken
         })
@@ -249,17 +250,59 @@
       onReqAction({reset},action, req){ //could be explicit with separate functions 'onRightDelete' & 'onLeftEdit' >>toReview**
         console.log("onReqAction::",action,req)
         reset() //umm
+
+        const url = `/doctors/${this.doctorId}/requests`
+
+        let doAction = (params) => {//onOk
+          api.post(url,params)
+            .then((response) => {
+              console.log("onReqAction::doAction >>response",url , response.data)
+              //this.visitRequests = response.data 
+              for( var i = 0; i < this.visitRequests.length; i++){
+                if ( this.visitRequests[i].id == req.patientId) {
+                  this.visitRequests.splice(i, 1);  //remove from list 
+                }                
+              }
+            }).catch((error) => {
+              //this.notifyError()
+              console.log("onReqAction::doAction >>error",error.status, error.message) //error
+            })
+        }
+
         switch (action) {
           case 'Del':
             console.log("onReqAction::Delete",req)
             //todo
-            //api to add completion
-            //remove from list 
+            const params = {
+              "patientId": req.patientId,
+              "action":req.action,
+              "status": "rejected"
+            }
+            doAction(params)
+           
             break
           case 'Edit':
             //todo api to get more info on patient?
             this.currentReq = req
-            this.tab = "Admin"  //nav to Goal tab
+            //this.tab = "Admin"  //nav to Goal tab...prolly not
+            //when it's treatment  >>todo** >>
+            /*this.addTreatmentDialog(
+              "Add Treatment",
+              function(opt){ //onOk---
+                doAction(opt) //labely.length < 2
+              },
+              function(opt){ //onCancel---
+                console.log("Adding treatment...cancelling "+p.firstName)
+              },
+              null //onDismiss
+            )*/
+
+            const paramz = {
+              "patientId": req.patientId,
+              "action":req.action,
+              "status": "approved"
+            }
+            doAction(paramz)
         }
         
       },
@@ -319,18 +362,7 @@
           //persistent:true,
           noBackdropDismiss:true, //esc execute onCancel--toReview**
           //persistent:      
-          // position: 'bottom',
-          //noBackdropDismiss  //should add this when user have to make choice
-          message: "bruuh",//message,
-          multiLine: true,
-        }).onOk(() => {
-          console.log("Adding treatment for patient "+p.firstName)
-          //could do this only if own patient?!?
-          //todo** add treatment
-        }).onCancel(() => {
-            //executeCancel()
-            console.log("Making patient "+p.firstName+ " Mine")
-            //then a
+          // position:
         }).onDismiss(() => {
           //if(executeDismiss){
           //  executeDismiss()

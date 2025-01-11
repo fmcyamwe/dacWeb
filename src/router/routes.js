@@ -1,6 +1,6 @@
 import MainLayout from 'layouts/MainLayout.vue'
-import PatientLayout from 'layouts/PatientLayout.vue'
-import DoctorLayout from 'layouts/DoctorLayout.vue'
+//import PatientLayout from 'layouts/PatientLayout.vue'
+//import DoctorLayout from 'layouts/DoctorLayout.vue'
 import ViewLayout from 'layouts/ViewLayout.vue'  //PatientLayout and DoctorLayout are same 
 
 import IndexPage from 'pages/IndexPage.vue'
