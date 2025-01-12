@@ -109,7 +109,7 @@ export default defineComponent({
       console.log("loginAs", choice)
       //this.loggedAs = choice  
     },
-    onScroll () {
+    onScroll () { //redundant--toRemove**
       // Get the current scroll position
       const currentScrollPosition = window.scrollY || document.documentElement.scrollTop
       // Because of momentum scrolling on mobiles, we shouldn't continue if it is less than zero

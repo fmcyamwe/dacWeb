@@ -21,7 +21,7 @@
             label="Logout"
             no-caps
             no-wrap
-            @click="loginBtnClick"
+            @click="logoutBtnClick"
           />
         <q-btn-dropdown v-else stretch flat label="Login">
           <q-list>
@@ -54,14 +54,14 @@ export default defineComponent({
     'LoginAs'
   ],
   mounted() {
-    console.log("mounted::",this.loggedAs)
+    console.log("CustomToolBar::mounted as ",this.loggedAs)
   },
   methods: {
     onSelect(v) {
-      console.log('huh login as', v)
+      //console.log('huh login as', v) //Patient
       this.$emit('LoginAs', v)
     },
-    loginBtnClick(){
+    logoutBtnClick(){ //umm should emit instead--todo**
       //if(!this.loggedAs) {this.showLoginDialog = true}
       //this.loggedAs = null
       //this.$router.push('/about'); // navigate to the "about" route

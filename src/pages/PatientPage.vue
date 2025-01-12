@@ -86,7 +86,7 @@
             </q-tab-panel>
 
             <q-tab-panel name="doctors">
-              <div class="text-h4 q-mb-md">Doctors eh</div>
+              <!--<div class="text-h4 q-mb-md">Doctors eh</div>-->
               <div class="flex flex-center"> <h5> List of Doctors</h5></div>
               <div class="q-pa-md bg-grey-9 text-white">
                 <q-list v-if="allDoctors && allDoctors.length > 0" class="rounded-borders" separator style="max-width: 600px"><!--bordered dark separator -->
@@ -111,7 +111,7 @@
 
                     <q-item-section top side><!--could be icons instead-->
                       <q-item-label lines="1" class="q-mt-xs text-body2 text-weight-bold text-primary text-uppercase">
-                        <span class="cursor-pointer">{{requesty(doctor)}}</span>
+                        <span class="cursor-pointer">{{requestLabel(doctor)}}</span>
                       </q-item-label>
                     </q-item-section>
 
@@ -122,36 +122,37 @@
             </q-tab-panel>
 
             <q-tab-panel name="history">
-            <div class="text-h4 q-mb-md">Medical History</div>
-            <p>Medical History including visits and treatments.</p>
+              <div class="text-h4 q-mb-md">Medical History</div><!--<div class="flex flex-center"> -->
+              <p>Medical History including visits and treatments.</p>
           
-            <!--put below in carousel each...toSee**-->
-            <q-timeline color="secondary">
-              <q-timeline-entry heading>
-                Attending docs
-              </q-timeline-entry>
-              <q-timeline-entry v-for="e in attendingDoctors" :key="e.doctorId" :subtitle="e.fromAction">
-                {{ e.doctorName }}
-              </q-timeline-entry><!--more info...-->
-            </q-timeline>
+              <!--put below in carousel each...toSee**-->
+              <q-timeline color="secondary">
+                <q-timeline-entry heading>
+                  Attending doctors
+                </q-timeline-entry>
+                <q-timeline-entry v-for="e in attendingDoctors" :key="e.doctorId" :subtitle="e.fromAction">
+                  {{ e.doctorName }} :: {{ e.speciality }} <br>
+                  Since: {{ new Date(e.since).toDateString() }}
+                </q-timeline-entry><!--todo add more info... new Date?!?-->
+              </q-timeline>
 
-            <q-timeline color="info">
-              <q-timeline-entry heading>
-                Requests
-              </q-timeline-entry><!--daDoc as key would group?-->
-              <q-timeline-entry v-for="e in medicHist" :key="e.daDoc" :subtitle="Date(e.from)">
-                {{ e.daDoc }} >> {{ e.deets }}
-              </q-timeline-entry>
-            </q-timeline>
+              <q-timeline color="info">
+                <q-timeline-entry heading>
+                   Requests
+                </q-timeline-entry><!--daDoc as key would group?-->
+                <q-timeline-entry v-for="e in medicHist" :key="e.daDoc" :subtitle="new Date(e.from).toDateString()">
+                  {{ e.daDoc }} >> {{ e.deets }}
+                </q-timeline-entry>
+              </q-timeline>
 
-            <q-timeline color="warning">
-              <q-timeline-entry heading>
-                Treatments
-              </q-timeline-entry><!--deets as key would group?-->
-              <q-timeline-entry v-for="e in medicHist" :key="e.deets" :subtitle="Date(e.from)">
-                {{ e.daDoc }} >> {{ e.deets }}
-              </q-timeline-entry>
-            </q-timeline>
+              <q-timeline color="warning">
+                <q-timeline-entry heading>
+                   Treatments
+                </q-timeline-entry><!--deets as key would group?-->
+                <q-timeline-entry v-for="e in medicHist" :key="e.deets" :subtitle="new Date(e.from).toDateString()">
+                  {{ e.daDoc }} >> {{ e.deets }}
+                </q-timeline-entry>
+              </q-timeline>
 
 
             <!--<q-carousel
@@ -219,10 +220,7 @@
     },
     data () {
       const $q = useQuasar()
-      const medicHist=ref(null)
-  
-
-      
+      const medicHist = ref(null)
 
       return {
         //loggedAs:ref(null),
@@ -245,29 +243,35 @@
     },
     beforeMount(){
       let token = this.dacOStore.getToken
+      //let t = this.dacOStore.upToken() //test...
       if(!token){
         this.getToken()
       } else{
-        console.log("beforeMount::SKIP token request!");
+        console.log("beforeMount::SKIP token request!")//, t, "<>", token);
         this.apiToken = token
       }
       this.fetchDoctors();
     },
     mounted(){
       
-      console.log("mounted::", this.patientId, this.apiToken) 
+      console.log("PatientPage::mounted>> ", this.patientId)//, this.apiToken) 
       //this.apiToken = token
 
-      //should be done in beforeMount? --todo**
+      //should be done in beforeMount? and with watch --todo**
       this.getPatientInfo() 
       this.fetchMedical()
     },
     methods: {
-      requesty(doc) {
+      readableDateTime(d){ //toUse maybe.....
+        let e = new Date(d)
+        console.log("readableDateTime::>>",d, e.toDateString())
+        return e.toDateString()
+      },
+      requestLabel(doc) {
         if (this.attendingDoctors.some(item => item.doctorId == doc.Id)){
-          return 'Request Treatment'
+          return 'Treatment Request'
         }
-        return 'Request visit'
+        return 'Action Request'
       },
       getToken() {
         const params = {
@@ -276,7 +280,7 @@
         }
         
         const url = `/auth/login`
-        //console.log("getToken::",url, params)
+        console.log("PatientPage::getToken >> ",url, params)
         
         //would below work? or manually set them?
         //api.defaults.headers.common['Authorization'] = AUTH_TOKEN;
@@ -292,7 +296,7 @@
           console.log(response.headers);
           console.log(response.config);
         }).catch((error) => {
-          //this.notifyError()
+          this.notifyError("Error fetching Auth token: "+error.status)
           console.log("getToken::Error",error)
         })
       },
@@ -308,6 +312,13 @@
         })
       },
       requestVisit(doc, opts){ //id
+        
+        if(!opts || !opts.choice || opts.choice == ''){ //opts.reason >>reason can be empty...shouldnt happen with dialog validation
+          console.log("requestVisit::EMPTY request>>no action",opts)
+          this.notifyError("Error no action specified!!")
+          return
+        }
+
         const params = {
           "doctorId": doc.Id, //id,
           //"date": "2024-12-28T10:00:00",
@@ -320,13 +331,14 @@
 
         api.post(url,params)
         .then((response) => {
-          console.log("requestVisit::response",response.data)
-            this.$q.notify({
+          console.log("requestVisit::response >> ",response.data)
+          this.positiveNotify(`Request is ${response.data}`)//todo** show properly
+            /*this.$q.notify({
             color: 'positive',
-            position: 'bottom',
-            message: `Request is ${response.data}`, //todo** show properly
-            icon: 'thumbs_up'
-          })
+            position: 'top',
+            message: `Request is ${response.data}`, 
+            icon: 'thumb_up'
+          })*/
         }).catch((error) => {
           //this.notifyError()
           console.log("requestVisit::Error",error)
@@ -334,18 +346,18 @@
 
       },
       goToDoctor(e, go, doc) { //id
-        e.preventDefault() // mandatory; we choose when we navigate
+        e.preventDefault() // mandatory to choose when to navigate
 
-        let doAction = (opt) => {//onOk
-          //{choice:'reset', reason:''}
-          this.requestVisit(doc,opt) //id
-        }
+          let doAction = (opt) => {//onOk
+            //{choice:'reset', reason:''}
+            this.requestVisit(doc,opt) //id
+          }
 
-        let doCancel = () => { //do cancel
-          console.log('goToDoctor..Aborting')
-          //this.reset() //todo***
-          return
-        }
+          let doCancel = () => { //do cancel
+            console.log('goToDoctor..Aborting')
+            //this.reset() //todo***
+            return
+          }
 
         let isAttendingDoc = this.attendingDoctors.find(item => item.doctorId == doc.Id)
 
@@ -465,8 +477,16 @@
           console.log("onSubmit::Error",error)
         })
       },
+      positiveNotify(message){
+        this.$q.notify({
+          color: 'positive',
+          position: 'top',
+          message: message,
+          icon: 'thumb_up'
+        })
+      },
       notifyError(message){
-        this.$q.notify({//plugin gotta be included
+        this.$q.notify({
           color: 'negative',
           position: 'top',
           message: message, //'API connection failed',
@@ -484,8 +504,8 @@
           }
         }).onOk((data) => {
           if (onOk) {
-            if(data.choice == ''){ //invoked again to handle when user doesnt make selection!
-              this.scheduleByDialog(title,mess, labels,selectedM, onOk,onCancel,onDismiss)
+            if(!data.choice || data.choice == ''){ //invoked again to handle when user doesnt make selection!
+              this.scheduleByDialog(title,mess, labels,isNotAttendingDoc, onOk,onCancel,onDismiss)
             }else {
               //console.log('scheduleByDialog::onOk!!',data)
               onOk(data)

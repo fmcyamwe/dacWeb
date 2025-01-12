@@ -13,7 +13,7 @@
             label="Name"
             lazy-rules
             item-aligned
-            :rules="[(val) => (val && val.length > 1) || 'Please type a ']"
+            :rules="[(val) => (val && val.length > 1) || 'Treatment Name cannot be empty']"
             />
             <q-input
             filled

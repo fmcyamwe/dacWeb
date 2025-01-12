@@ -15,7 +15,6 @@
         <q-tab name="RList" label="Requests">
           <q-badge v-if="visitRequests.length > 0" color="red" floating rounded>{{visitRequests.length}}</q-badge>
         </q-tab>
-        <!-- tab to edit own info?-->
         <!--v-if? toTry**-->
         <q-tab name="Admin" label="Admin Stuff" :disable="!currentReq"/>
       </q-tabs>
@@ -69,27 +68,35 @@
               popup
               expandSeparator
               clickable>
-              <!--should get more info on Patient todo**-->
+              <!--<template v-slot:header>
+                <div class="col"> 
+                  {{ req.action }} requested on {{ new Date(req.on).toDateString() }}
+                </div>
+              </template> -->
               <template v-slot:default>
-                <q-card><!--or use q-card actions more explicit?-->
-                  <q-slide-item 
-                  @right="(e) => onReqAction(e, 'Del', req)" 
-                  @left="(e) => onReqAction(e, 'Edit', req)">
+                <q-card><!--or use q-card actions more explicit? and get more info on Patient?(i.e if own patient?)-->
+                  <q-slide-item
+                  @left="(e) => onReqAction(e, 'Agree', req)"
+                  @right="(e) => onReqAction(e, 'Reject', req)">
                     <template v-slot:left>
-                      Edit
+                      Agree
                     </template>
                     <template v-slot:right>
-                      Delete
+                      Reject
                     </template>
+                    <q-item-section> <!--seems better than using v-slot:header above-->
+                      <div class="col"> 
+                        {{ req.action }} on {{ new Date(req.on).toDateString() }}
+                      </div>
+                    </q-item-section>
                     <q-item-section>
                       <q-item-label overline class="q-mx-lg q-px-md row justify-center no-wrap" style="max-width:100%;font-weight: bolder;">
-                      {{ req.reason }} {{ req.action }} {{ new Date(req.on) }}
+                      By {{ req.patientName }} {{ req.reason }} 
                       </q-item-label><!--getDay() & getHours()-->
                     </q-item-section>
                   </q-slide-item>
                 </q-card>
-              </template>
-                
+              </template>  
               </q-expansion-item>
             </transition-group>
 
@@ -97,7 +104,68 @@
         </q-tab-panel>
 
         <q-tab-panel name="Admin">
-
+          <!-- tab to edit own info? bof gonna just use this by default..
+            should be add Patient? toReview**
+            (Could add btn at end of Patients tab that nav to this for adding Patient? is Doc allowed to add patient?)-->
+          <div class="text-h4 q-mb-md">Information</div>
+              <p> Your current information...Edit/Update</p>
+              <q-card class="no-margin scroll">
+                <q-form @submit="onSubmit" class="form">
+                  <q-input class="q-mx-none"
+                  filled
+                  v-model="firstName"
+                  label="First Name"
+                  lazy-rules
+                  item-aligned
+                  :rules="[ val => val && val.length > 1 || 'Please enter your first name']"
+                  />
+                  <q-input class="q-mx-none"
+                  filled
+                  v-model="lastName"
+                  label="Last Name"
+                  lazy-rules
+                  item-aligned
+                  :rules="[ val => val && val.length > 1 || 'Please enter your last name']"
+                  />
+                  <div class="q-gutter-sm q-mx-auto">
+                      <strong><em>Speciality:</em></strong>
+                      <q-btn-dropdown
+                        color=""
+                        text-color="teal"
+                        elevated
+                        no-caps
+                        :label="specialityLabel"
+                        ><!--@click="onClicked"-->
+                            <q-list>
+                                <q-item v-for="(item, index) in allSpecialities" 
+                                :key="index" 
+                                clickable
+                                @click="onSelect(item)" v-close-popup>
+                                    <q-item-section>
+                                        <q-item-label>{{item }}</q-item-label>
+                                    </q-item-section>
+                                </q-item>
+                            </q-list>
+                      </q-btn-dropdown>
+                  </div>
+                          
+                  <q-input class="q-mx-none"
+                    filled
+                    v-model="practiseSince"
+                    type="date"
+                    label="Practising since"
+                    clearable
+                    stackLabel
+                    item-aligned
+                  />
+                  
+                  <!--current doctor & can change? todo**-->
+                  <q-separator dark />
+                  <div class="q-ml-sm q-mb-md q-gutter-md">
+                    <q-btn label="Save" type="submit" color="primary"  align="between" @submit="onSubmit"/>
+                  </div>
+                </q-form>
+              </q-card>
         </q-tab-panel>
       </q-tab-panels>
       
@@ -105,7 +173,7 @@
   </template>
   
   <script>
-  import { defineComponent, ref, watchEffect,watch } from 'vue'
+  import { defineComponent, ref,watch } from 'vue'
   import { useQuasar } from 'quasar'
   import { api } from 'boot/axios'
   import { dacOdacStore } from '../stores/dacOdac' 
@@ -117,7 +185,7 @@
       
     },
     props:{
-      loggedAs: String, //prolly not needed--toReview**
+      loggedAs: String,
       doctorId: {
         type: String,
         //required: true, //should be passed from login...toEnable**
@@ -128,40 +196,38 @@
       const $q = useQuasar()
       const apiToken = ref(null)
 
-      //watchEffect(() => {
-        //console.log("watchEffect::apiToken",this.apiToken)
-        //if(this.apiToken) {this.fetchAllPatients(this.apiToken)} //toSee if runs..
-      //  this.fetchAllPatients(this.apiToken)
-        //umm this.allPatients?
-      //}),
-      
-      watch(apiToken,(apiTokn, prevApiToken) => {//or this.apiToken?
+      watch(apiToken,(apiTokn, prevApiToken) => {
         //console.log("watch::apiToken",apiTokn, prevApiToken)
         if(apiTokn){
-          this.fetchAllPatients(apiTokn) //yeeeyuh
+          this.fetchAllPatients(apiTokn)
         }
       })
       
       return {
         //loggedAs:ref(null),
-        allPatients:ref(null), //should be current patients 
-        //allSpecialities:ref(null),
-        visitRequests:ref([]),
+        allPatients:ref(null), //should be current patients
+        visitRequests:ref([]), //todo** rename to patientRequests || actionRequests....
         tab:ref('Patients'), //start by viewing current patients
         dacOStore: dacOdacStore(),
         apiToken:apiToken,//ref(null),
         currentReq:ref(null),
         expanded:ref({}),
-        morphGroupModel: ref('item'),
-        nextMorphStep: ref({
+        morphGroupModel: ref('item'), //redundant--toRemove
+        nextMorphStep: ref({ //same as above--toRemove
           item: 'card1',
           card1: 'card2',
           card2: 'item'
         }),
+
+        //doctor's info
+        allSpecialities:ref(null),
+        firstName:ref(''),
+        lastName:ref(''),
+        speciality:ref(''),
+        practiseSince:ref(null)
         
       }
     },
-    
     beforeMount(){
       let token = this.dacOStore.getToken
       if(!token){
@@ -172,16 +238,37 @@
       }  
       this.fetchPendingRequests();
     },
-    /*mounted(){
+    mounted(){
       //let token = this.dacStore.savedToken()
       //let token = this.dacOStore.getToken
       //let t = this.dacOStore.getToken()
-      console.log("mounted::",this.doctorId, this.apiToken)
-      //this.apiToken = token
+      console.log("mounted::",this.doctorId)//, this.apiToken)
+      //own info--toReview** if needed or should do api hit when in 'Admin' tab
+      this.getDocInfo()
+      this.fetchAllSpecities()
+    },
+    computed:{
+      specialityLabel(){
+        if(!this.speciality) return "Select";
 
-      //this.fetchAllPatients(); //test to get all patients
-    },*/
+        return this.speciality
+      },
+    },
     methods: {
+      onSelect(e){
+        console.log("onSelect::speciality",e)
+        this.speciality = e
+      },
+      fetchAllSpecities(){
+        api.get('/specialities')
+          .then((response) => {
+            //console.log("fetchAllSpecialities::response::",response.data)
+            this.allSpecialities = response.data 
+          }).catch((error) => {
+            //this.notifyError()
+            console.log("fetchAllSpecities::Error::",error)
+          })
+      },
       getToken() {
         const params = {
           "username": "admin", //toChange
@@ -196,13 +283,14 @@
 
         api.post(url,params)
         .then((response) => {
-          //console.log("getToken::response",response.data)
+          console.log("DoctorPage::getToken>>response",response.data)
           //this.allDoctors = response.data 
           //this.dacStore.saveToken(response.data.token)
-          this.dacOStore.saveToken(response.data.token)
+          this.dacOStore.saveToken(response.data.token) //should overwrite current token
           this.apiToken = response.data.token
         }).catch((error) => {
-          //this.notifyError()
+          this.notifyError("Error fetching Auth token: "+error.status)
+          this.dacOStore.deleteToken(); //just delete any stored token
           console.log("getToken::Error",error)
         })
       },
@@ -212,8 +300,7 @@
           return
         }
 
-        //todo** use pagination
-        const url = `/patients?PageSize=10&PageIndex=0'` // `/doctors/${this.doctorId}/patients`
+        const url = '/patients?PageSize=10&PageIndex=0' // `/doctors/${this.doctorId}/patients`
         api.get(url,{
           headers: {'Authorization': `Bearer ${token}`}, //this.apiToken
         })
@@ -231,8 +318,7 @@
           // //error,
           console.log("fetchAllPatients::Error", error.status, error.message)
           if(error.status == '401'){
-            //delete current token --todo**
-            this.getToken(); //retry 
+            this.getToken(); //refresh token and retry 
           }
         })
       },
@@ -247,32 +333,31 @@
           console.log("fetchPendingRequests::Error",error.status, error.message) //error
         })
       },
-      onReqAction({reset},action, req){ //could be explicit with separate functions 'onRightDelete' & 'onLeftEdit' >>toReview**
+      onReqAction({reset},action, req){ //could be explicit with separate functions for 'onRight' & 'onLeft' actions but small enough
         console.log("onReqAction::",action,req)
         reset() //umm
 
         const url = `/doctors/${this.doctorId}/requests`
 
-        let doAction = (params) => {//onOk
+        let doAction = (params) => {
           api.post(url,params)
             .then((response) => {
               console.log("onReqAction::doAction >>response",url , response.data)
               //this.visitRequests = response.data 
               for( var i = 0; i < this.visitRequests.length; i++){
                 if ( this.visitRequests[i].id == req.patientId) {
-                  this.visitRequests.splice(i, 1);  //remove from list 
+                  this.visitRequests = this.visitRequests.splice(i, 1);  //remove from list --toTest** update properly!
                 }                
               }
             }).catch((error) => {
-              //this.notifyError()
+              this.notifyError("Error on Request Action:: "+action, error.message)
               console.log("onReqAction::doAction >>error",error.status, error.message) //error
             })
-        }
+          }
 
         switch (action) {
-          case 'Del':
-            console.log("onReqAction::Delete",req)
-            //todo
+          case 'Reject':
+            console.log("onReqAction::Reject",req)
             const params = {
               "patientId": req.patientId,
               "action":req.action,
@@ -281,7 +366,7 @@
             doAction(params)
            
             break
-          case 'Edit':
+          case 'Agree':
             //todo api to get more info on patient?
             this.currentReq = req
             //this.tab = "Admin"  //nav to Goal tab...prolly not
@@ -306,7 +391,12 @@
         }
         
       },
-      addTreatment(patient, opts){ //id
+      addTreatment(patient, opts){
+        if(!opts || opts.name.trim() == ''){ //check patient too?
+          this.notifyError("A Treatment need a valid name! Try again.")
+          return
+        }
+
         const params = {
           "patientId": patient.Id,
           "doctorId":this.doctorId,
@@ -320,12 +410,13 @@
         api.post(url,params)
         .then((response) => {
           console.log("addTreatment::response",response.data)
-            this.$q.notify({
+          this.positiveNotify(`Request is ${response.data}`) //todo** show properly
+          /*this.$q.notify({
             color: 'positive',
             position: 'top',
-            message: `Request is ${response.data}`, //todo** show properly
-            icon: 'thumbs_up'
-          })
+            message: `Request is ${response.data}`,
+            icon: 'thumb_up'
+          })*/
         }).catch((error) => {
           //this.notifyError()
           console.log("addTreatment::Error",error)
@@ -346,10 +437,10 @@
         this.addTreatmentDialog(
           "Add Treatment",
           function(opt){ //onOk---
-            doAction(opt) //labely.length < 2
+            doAction(opt)
           },
-          function(opt){ //onCancel---
-            console.log("Adding treatment...cancelling "+p.firstName)
+          function(){ //onCancel---
+            console.log("Adding treatment...cancelling for patient:: "+p.firstName)
           },
           null //onDismiss
         )
@@ -399,13 +490,71 @@
               onDismiss()
           }
         })
-
       },
-      notifyError(){
-        this.$q.notify({ //weirdly complains on $q access?
+      onSubmit(){
+        console.log(`onSubmit Doctor::`,this.firstName,this.lastName,this.speciality,this.practiseSince)
+            
+        //const url = `/doctors/new/` //not new doctor >>works at least lool 
+        const url = `/doctors/${this.doctorId}`
+        const params = {
+          "firstName": this.firstName,
+          "lastName": this.lastName,
+          "speciality": this.speciality,
+          "practiseSince": this.practiseSince
+        }
+
+        console.log("onSubmit::",url, params)
+        api.put(url,params)
+        //api.post(url,params)//{
+          //headers: {'Authorization': `Bearer ${this.apiToken}`},
+          //params:params}
+        .then((response) => {
+          console.log("onSubmit::response",response.data)
+          //this.reset();
+        }).catch((error) => {
+          //this.notifyError()
+          console.log("onSubmit::Error",error)
+        })
+      },
+      getDocInfo(){
+        const url = `/doctors/${this.doctorId}`
+
+        api.get(url,{//need auth!!
+          headers: {'Authorization': `Bearer ${this.apiToken}`},
+        })
+        .then((response) => {
+          console.log("getDocInfo::response",response.data)
+          let data = response.data
+          this.firstName = data.firstName
+          this.lastName = data.lastName
+          this.speciality = data.speciality
+          this.practiseSince = data.practiseSince
+          
+          this.currentReq = this.doctorId //enable Admin--toReview**
+        }).catch((error) => {
+          this.notifyError("getDocInfo::Error "+ error.status)
+          // //error,
+          console.log("getDocInfo::Error", error.status, error.message)
+          //if(error.status == '401'){
+            //--todo** handle error
+          //  this.getToken(); //retry 
+            
+          //}
+        })
+      },
+      positiveNotify(message){
+        this.$q.notify({
+          color: 'positive',
+          position: 'top',
+          message: message,
+          icon: 'thumb_up'
+        })
+      },
+      notifyError(message){
+        this.$q.notify({
           color: 'negative',
           position: 'top',
-          message: 'API connection failed',
+          message: message, //'API connection failed',
           icon: 'report_problem'
           })
       },

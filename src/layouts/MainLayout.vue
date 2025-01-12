@@ -5,7 +5,7 @@
       class="q-mt-sm main-view doBounce"
       :login-options="loginList"
       :logged-as="loggedAs"
-      @login-as="doLogin"
+      @login-as="showLogin"
       />
       <q-toolbar v-else class="q-mx-lg g-planner">
         <q-toolbar-title >
@@ -25,6 +25,11 @@
 
     <q-page-container>
       <!--<router-view  :someProp="loggedAs"/> -->
+      <loginDialog v-if="loggedAs"
+      :randomLogAcct="selectLoginAcct()"
+      @do-login-as="doLogin"
+      @gon-hide="{{ console.log('do something?'); }}"
+      />
       <router-view v-slot="{ Component }">
         <component :is="Component" />
       </router-view>
@@ -36,7 +41,7 @@
 import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
-import { dacOdacStore } from '../stores/dacOdac'  //ummm
+//import { dacOdacStore } from '../stores/dacOdac'  //ummm
 
 const loginOptionList = [ //bon better to control login Options from here!!
   {
@@ -58,6 +63,7 @@ export default defineComponent({
 
   components: {
     CustomToolBar: defineAsyncComponent(() => import('../components/customToolBar.vue')), //loadOnDemand
+    loginDialog: defineAsyncComponent(() => import('../components/loginDialog.vue'))
   },
 
   setup () {
@@ -92,7 +98,7 @@ export default defineComponent({
     },
   },
   methods: {
-    loginBtnClick(){
+    logoutBtnClick(){ //todo** should handle route change here 
       if(!this.loggedAs) {this.showLoginDialog = true}
       this.loggedAs = null
       //this.$router.push('/about'); // navigate to the "about" route
@@ -100,13 +106,22 @@ export default defineComponent({
       // //both good but can go back....toReview**
       this.$router.push('/');
     },
-    doLogin(choice){ //toSee
-      console.log("loginAs", choice, this.randoms)
-      var route = choice == 'Doctor' ? '/doctor/'+this.randoms[0] : '/patient/'+this.randoms[1]
+    selectLoginAcct(){//proper dynamic eval
+      //todo** validation that this.randoms != null
+      return this.loggedAs == 'Doctor' ? this.randoms[0] : this.randoms[1]
+    },
+    showLogin(choice){
+      console.log("showLogin::loginAs", choice, this.randoms)
+      //show login dialog....also handle when this.randoms === null --todo**
       this.loggedAs = choice  
+    },
+    doLogin(userName, pwd){ //actual route change
+      console.log("doLogin", this.loggedAs, userName, pwd)
+      var route = this.loggedAs == 'Doctor' ? '/doctor/'+userName : '/patient/'+userName //this.randoms[0] :this.randoms[1]
+      //this.loggedAs = choice  
       this.$router.push({ path: route })  //`/user/${username}`
     },
-    onScroll () {
+    onScroll () {//redundant--toRemove**
       // Get the current scroll position
       const currentScrollPosition = window.scrollY || document.documentElement.scrollTop
       // Because of momentum scrolling on mobiles, we shouldn't continue if it is less than zero
@@ -121,7 +136,7 @@ export default defineComponent({
     doApiCheck(){
       api.get('/connect') //toChange....
       .then((response) => {
-        console.log("response::",response.data)
+        console.log("doApiCheck::response>> ",response.data)
         this.isConnected = true
         this.randoms = response.data
       }).catch((error) => {
