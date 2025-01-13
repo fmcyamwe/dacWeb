@@ -302,6 +302,7 @@
       },
       fetchDoctors(){//patients should see doctors'
         //todo** add pagination...
+        //todo** use apiHelper >> fetchDoctors
         api.get('/doctors?PageSize=10&PageIndex=0')   
         .then((response) => {
           console.log("fetchDoctors::response",response.data)
@@ -452,7 +453,6 @@
 
       },
       onSubmit(){
-        console.log(`onSubmit :: for ${this.patientId}`,this.firstName,this.lastName,this.gender,this.bornIn)
         
         const url = `/patients/${this.patientId}`
 

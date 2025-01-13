@@ -10,16 +10,20 @@ export const dacOdacStore = defineStore('dacOdacStore', () => {
         return JSON.parse($q.localStorage.getItem("Token"))
     })
 
-    function upToken(){ //up to date token
+    function upToken(){ //up to date token toTest**
         return JSON.parse($q.localStorage.getItem("Token"))
     }
     function saveToken(token) {
         $q.localStorage.set('Token', JSON.stringify(token))
     }
+    function deleteToken(){
+        $q.localStorage.removeItem('Token')
+    }
 
     return {
         getToken,
         saveToken,
-        upToken
+        upToken,
+        deleteToken
     }
 });

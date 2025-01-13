@@ -1,18 +1,37 @@
 <template>
     <q-layout view="lHh Lpr lFf">
       <q-header elevated reveal :revealOffset="100" :class="theme">
-        <CustomToolBar
-            class="q-mt-sm main-view doBounce"
-            :login-options="[]"
-            :logged-as="loggedAs"
-            @login-as="() => {console.log('umm wanna log out?')}"
-        />
-        <br>
+        <div class="q-pa-md">
+          <q-toolbar class="bg-purple text-white shadow-2 rounded-borders">
+            <q-btn flat label="Homepage" @click="onClicked"/>
+            <q-space />
+
+            <!--
+              notice shrink property since we are placing it
+              as child of QToolbar
+            also move into AdminPage instead smh-->
+            <q-tabs v-model="tab" shrink>
+              <q-tab name="Add" label="Add" no-caps/>
+              <q-tab name="View" label="View" no-caps/>
+              <q-tab name="Other" label="Other" no-caps/>
+            </q-tabs>
+          </q-toolbar>
+      </div>
       </q-header>
   
       <q-page-container>
-        
-        <!--<router-view some-prop="a value"/> -->
+        <q-tab-panels v-model="tab" animated><!--huh wonder if can use-->
+          <q-tab-panel name="Add">
+
+          </q-tab-panel>
+          <q-tab-panel name="View">
+            <ViewInfo/>
+          </q-tab-panel>
+          <q-tab-panel name="Other">
+
+          </q-tab-panel>
+        </q-tab-panels><!--so bad-->
+
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
@@ -24,17 +43,19 @@
 import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
+import ViewInfo from '../components/ViewInfo.vue'
 
 export default defineComponent({
-  name: 'PatientLayout',
+  name: 'AdminLayout',
 
   components: {
-    CustomToolBar: defineAsyncComponent(() => import('../components/customToolBar.vue')),
+    ViewInfo
+    //CustomToolBar: defineAsyncComponent(() => import('../components/customToolBar.vue')),
   },
   props:{
     loggedAs:{
-        type: String,
-        default: '' //Patient
+      type: String,
+      default: ''
     }
   },
   setup () {
@@ -42,25 +63,20 @@ export default defineComponent({
     //console.log($q.platform.is) //.ios
 
     return {
-      //loginList: loginOptionList,
+      tab:ref('Add'),
       showNavbar: true,
       lastScrollPosition: 0,
       isConnected:ref(false), //check connection before showing login btn...
-      showLoginDialog:ref(false),
-      //loggedIn:this.loggedAs//ref(this.loggedAs),
     }
   },
   beforeMount(){
     //this.doApiCheck();
-    console.log("beforeMount::PatientLayout")
+    console.log("beforeMount::AdminLayout")
   },
   mounted(){
       console.log("mounted::",this.loggedAs)
   },
-  //mounted(){
-  //  console.log("onMounted")
-    //window.addEventListener('scroll', this.onScroll)
-  //},
+  
   beforeUnmount(){
     //window.removeEventListener('scroll', this.onScroll)
   },
@@ -72,17 +88,12 @@ export default defineComponent({
     },
   },
   methods: {
-    loginBtnClick(){ //redundant--toRemove**
-      if(!this.loggedAs) {this.showLoginDialog = true}
+    onClicked(){
       //this.loggedAs = null
       //this.$router.push('/about'); // navigate to the "about" route
       //this.$router.replace({ name: '' }); // replace the current route with the "about" route
       // //both good but can go back....toReview**
       this.$router.push('/');
-    },
-    doLogin(choice){ //redundant--toRemove**
-      console.log("loginAs", choice)
-      //this.loggedAs = choice  
     },
     onScroll () {
       // Get the current scroll position
@@ -106,7 +117,7 @@ export default defineComponent({
       })
     }, 
     notifyError(){
-      this.$q.notify({ //weirdly complains on $q access?
+      this.$q.notify({
         color: 'negative',
         position: 'top',
         message: 'API connection failed',

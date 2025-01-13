@@ -1,6 +1,6 @@
 import MainLayout from 'layouts/MainLayout.vue'
 //import PatientLayout from 'layouts/PatientLayout.vue'
-//import DoctorLayout from 'layouts/DoctorLayout.vue'
+import AdminLayout from 'layouts/AdminLayout.vue'
 import ViewLayout from 'layouts/ViewLayout.vue'  //PatientLayout and DoctorLayout are same 
 
 import IndexPage from 'pages/IndexPage.vue'
@@ -14,8 +14,8 @@ const routes = [
     alias: '/home',
     component: MainLayout, //() => import('layouts/MainLayout.vue'), 
     children: [
-      { path: '', component: IndexPage },//() => import('pages/IndexPage.vue') },
-      { path: '/admin', component: AdminPage }
+      { path: '', component: IndexPage, props: true },//() => import('pages/IndexPage.vue') },
+      //{ path: '/admin', component: AdminPage }
       //{ path: 'patient', component: () => import('pages/PatientPage.vue') },
       //{ path: 'doctor', component: () => import('pages/DoctorPage.vue') }
     ]
@@ -34,6 +34,13 @@ const routes = [
     component: ViewLayout,
     children: [
       { path: '/doctor/:doctorId', component: DoctorPage, props: true}
+    ]
+  },
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      { path: '', component: AdminPage }
     ]
   },
 

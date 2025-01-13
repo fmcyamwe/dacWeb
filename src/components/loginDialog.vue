@@ -116,7 +116,6 @@ export default defineComponent ({
   },
   methods: {
     doLogin() {
-      console.log('huh doLogin >>', )
       this.$emit('doLoginAs', this.aLogin, this.aPassword)
     }
   }

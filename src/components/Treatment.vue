@@ -51,6 +51,7 @@
 <script>
 import { defineComponent,ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar' //needed?>> emits dont seem to work without it so far....
+
 export default defineComponent ({  //this be Options Vue notation
     name: 'treatmentRequest', //todo** rename to treatmentDialog
     props: {
