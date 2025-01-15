@@ -2,6 +2,14 @@
 
 DAC assignement
 
+To locally run, please follow the instructions below and install dependencies using 'yarn' or 'npm'
+
+For docker image (with a connection issue to the API unfortunately) the command:
+  > docker compose up --build
+  
+**It should** be run after having the API containers up in order for the container to be registered on the same bridge network.
+
+
 ## Install the dependencies
 ```bash
 yarn

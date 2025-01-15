@@ -36,8 +36,7 @@
 <script>
 import { defineComponent, defineAsyncComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { api } from 'boot/axios'
-import { anotherApiCheck,doApiCheck } from '../pages/util/apiHelper'
+import { doApiCheck } from '../pages/util/apiHelper'
 
 const loginOptionList = [ //bon better to control login Options from here!!
   {
@@ -79,13 +78,6 @@ export default defineComponent({
   beforeMount(){
     this.doAnApiCheck();
   },
-  //mounted(){
-  //  console.log("onMounted")
-    //window.addEventListener('scroll', this.onScroll)
-  //},
-  beforeUnmount(){
-    //window.removeEventListener('scroll', this.onScroll)
-  },
   computed: {
     theme(){
       if(!this.loggedAs) return;
@@ -102,32 +94,10 @@ export default defineComponent({
       // //both good but can go back....toReview**
       this.$router.push('/');
     },
-    /*selectLoginAcct(){//proper dynamic eval
-      //todo** validation that this.randoms != null
-      return this.loggedAs == 'Doctor' ? this.randoms[0] : this.randoms[1]
-    },*/
     showLogin(choice){
       console.log("showLogin::loginAs", choice, this.randoms)
       //show login dialog....also handle when this.randoms === null --todo**
       this.loggedAs = choice  
-    },
-    /*doLogin(userName, pwd){ //actual route change
-      console.log("doLogin", this.loggedAs, userName, pwd)
-      var route = this.loggedAs == 'Doctor' ? '/doctor/'+userName : '/patient/'+userName //this.randoms[0] :this.randoms[1]
-      //this.loggedAs = choice  
-      this.$router.push({ path: route })  //`/user/${username}`
-    },*/
-    onScroll () {//redundant--toRemove**
-      // Get the current scroll position
-      const currentScrollPosition = window.scrollY || document.documentElement.scrollTop
-      // Because of momentum scrolling on mobiles, we shouldn't continue if it is less than zero
-      if (currentScrollPosition < 0) {
-        return
-      }
-      // Here we determine whether we need to show or hide the navbar
-      this.showNavbar = currentScrollPosition < this.lastScrollPosition
-      // Set the current scroll position as the last scroll position
-      this.lastScrollPosition = currentScrollPosition
     },
     doAnApiCheck(){
       //let a = 
@@ -137,49 +107,12 @@ export default defineComponent({
         this.randoms = response.data
       }).catch((error) => {
         console.log("doAnApiCheck::Error",error)
-        //this.notifyError() //needed Notify plugin
+        this.notifyError()
       })
 
-      /*
-      api.get('/connect') //toChange....
-      .then((response) => {
-        console.log("doApiCheck::response>> ",response.data)
-        this.isConnected = true
-        this.randoms = response.data
-      }).catch((error) => {
-        console.log("getToken::Error",error)
-        this.notifyError() //needed Notify plugin
-      })*/
     },
-    /*getToken() {
-      const params = {
-        "username": "admin", //toChange
-        "password":"password"
-      }
-        
-      const url = `/auth/login`
-        //console.log("getToken::",url, params)
-        
-        //would below work? or manually set them?
-        //api.defaults.headers.common['Authorization'] = AUTH_TOKEN;
-        
-      api.post(url,params)
-        .then((response) => {
-          console.log("getToken::response",response.data)
-          //this.dacStore.saveToken(response.data.token)
-          this.dacOStore.saveToken(response.data.token)
-          this.apiToken = response.data.token
-          //console.log(response.status);
-          //console.log(response.statusText);
-          console.log(response.headers);
-          console.log(response.config);
-        }).catch((error) => {
-          //this.notifyError()
-          console.log("getToken::Error",error)
-        })
-      },*/
     notifyError(){
-      this.$q.notify({ //weirdly complains on $q access?
+      this.$q.notify({
         color: 'negative',
         position: 'top',
         message: 'API connection failed',

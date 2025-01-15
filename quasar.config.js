@@ -30,7 +30,6 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
-      
       'axios',
     ],
 
@@ -88,7 +87,8 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       // https: true
-      open: true // opens browser window automatically
+      //port: 8080, //docker-compose but removing...
+      open: true // opens browser window automatically--false for docker
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework

@@ -5,7 +5,7 @@
       :randomLogAcct="selectLoginAcct"
       @do-login-as="doLogin"
       @gon-hide="(e) =>{ console.log('do something?'); }"
-      /><!--umm above dont run?!?-->
+    />
 
     <img
       alt="Dac logo"
@@ -34,15 +34,6 @@ export default defineComponent({
     const $q = useQuasar()
     //const apiToken = ref(this.loggedInAs)
 
-    /* umm not needed with using ref() above! also just had to pass it from router for proper update!!
-    watch(apiToken,(someProppy, prevSomeProp) => {
-      console.log("IndexPage::watch::someProp",someProppy, prevSomeProp)
-      if(someProppy){
-        //this.fetchAllPatients(apiTokn)this.loggedInAs
-        //this.loggedAs = someProppy //no likey this.
-      }
-    })*/
-
     return {
       //loggedAs:ref(null),
       someProps:this.someProp,
@@ -65,12 +56,6 @@ export default defineComponent({
       //this.loggedAs = choice  
       this.$router.push({ path: route })  //`/user/${username}`
     },
-    /*selectLoginAcct(){//proper dynamic eval but not needed with using computed above
-      //todo** validation that this.randoms != null
-      console.log("IndexPage:: selectLoginAcct", this.randoms)
-      return this.loggedInAs == 'Doctor' ? this.randoms[0] : this.randoms[1]
-    },*/
-
   }
 })
 </script>

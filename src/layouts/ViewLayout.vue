@@ -12,7 +12,6 @@
   
       <q-page-container>
         
-        <!--<router-view some-prop="a value"/> -->
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
@@ -36,58 +35,19 @@ export default defineComponent({
   props:{
     loggedAs:{
         type: String,
-        default: '' //Patient
+        default: ''
     }
   },
   setup () {
     const $q = useQuasar()
-    //console.log($q.platform.is) //.ios
-    //const dacOStore = dacOdacStore()
-    //const dacStore = useDacStore()
-    const loginOptionList = [ //bon better to control login Options from here!!
-  {
-    title: 'Patient',
-    caption: 'As Patient',
-    icon: 'edit_note',
-    link: '/patient',
-  },
-  {
-    title: 'Doctor',
-    caption: 'As Doctor',
-    icon: 'event_upcoming',
-    link: '/doctor',
-  }
-]
-
     return {
-      //loginList: loginOptionList,
-      showNavbar: true,
-      lastScrollPosition: 0,
-      isConnected:ref(false), //check connection before showing login btn...
+     
+      isConnected:ref(false),
       showLoginDialog:ref(false),
       //dacOStore: dacOdacStore(),
       //apiToken:ref(null),
       //loggedIn:this.loggedAs//ref(this.loggedAs),
     }
-  },
-  /*beforeMount(){
-    let token = this.dacOStore.getToken
-    console.log("beforeMount::ViewLayout",this.loggedAs, token)
-    if(!token){
-      let t = this.getToken()
-      console.log("beforeMount::ViewLayout >> getToken",t) //toSee**
-      //this.apiToken = t ///rprolly
-    }
-  },*/
-  //mounted(){
-  //    console.log("mounted::ViewLayout",this.loggedAs)
-  //},
-  //mounted(){
-  //  console.log("onMounted")
-    //window.addEventListener('scroll', this.onScroll)
-  //},
-  beforeUnmount(){
-    //window.removeEventListener('scroll', this.onScroll)
   },
   computed: {
     theme(){
@@ -104,22 +64,6 @@ export default defineComponent({
       //this.$router.replace({ name: '' }); // replace the current route with the "about" route
       // //both good but can go back....toReview**
       this.$router.push('/');
-    },
-    doLogin(choice){ //redundant--toRemove**
-      console.log("loginAs", choice)
-      //this.loggedAs = choice  
-    },
-    onScroll () { //redundant--toRemove**
-      // Get the current scroll position
-      const currentScrollPosition = window.scrollY || document.documentElement.scrollTop
-      // Because of momentum scrolling on mobiles, we shouldn't continue if it is less than zero
-      if (currentScrollPosition < 0) {
-        return
-      }
-      // Here we determine whether we need to show or hide the navbar
-      this.showNavbar = currentScrollPosition < this.lastScrollPosition
-      // Set the current scroll position as the last scroll position
-      this.lastScrollPosition = currentScrollPosition
     },
     getToken(){  //redundant--toRemove**
       const params = {
@@ -142,7 +86,7 @@ export default defineComponent({
         })
     }, 
     notifyError(){
-      this.$q.notify({ //weirdly complains on $q access?
+      this.$q.notify({
         color: 'negative',
         position: 'top',
         message: 'API connection failed',
